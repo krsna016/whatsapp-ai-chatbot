@@ -1,0 +1,8 @@
+# Enforce LF endings on check-in
+* text=auto eol=lf
+
+# Exclude binaries from normalization
+*.png -text
+*.jpg -text
+*.ico -text
+*.pdf -text
