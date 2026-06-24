@@ -1,83 +1,108 @@
-# c2-whatsapp-ai-powered-chatbot-latest
+# WhatsApp Conversational AI Agent
 
-[![Language: Python](https://img.shields.io/badge/language-Python-blue.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI Pipeline](https://github.com/krsna016/c2-whatsapp-ai-powered-chatbot-latest/actions/workflows/ci.yml/badge.svg)](https://github.com/krsna016/c2-whatsapp-ai-powered-chatbot-latest/actions/workflows/ci.yml)
-[![Security: CodeQL](https://github.com/krsna016/c2-whatsapp-ai-powered-chatbot-latest/actions/workflows/codeql.yml/badge.svg)](https://github.com/krsna016/c2-whatsapp-ai-powered-chatbot-latest/actions/workflows/codeql.yml)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&style=flat-square)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-v3.0-000000?logo=flask&style=flat-square)]()
+[![Twilio](https://img.shields.io/badge/Twilio-API-F22F46?logo=twilio&style=flat-square)]()
+[![LLM](https://img.shields.io/badge/AI-Gemini/OpenAI-8E75B2?logo=openai&style=flat-square)]()
 
-Professional engineering repository configurations deployed inside your GitHub profile.
+## Overview
+This repository contains a context-aware WhatsApp conversational agent engineered using Flask, the Twilio Messaging API, and modern LLM providers. It acts as an autonomous customer interaction endpoint, parsing incoming WhatsApp payloads, maintaining dialogue history, and persisting chat logs into a localized SQL database.
 
----
+## Problem Statement
+Small-to-medium businesses lack the engineering bandwidth to build custom Natural Language Understanding (NLU) pipelines for WhatsApp Business channels. Traditional rule-based bots (Typeform/ManyChat) offer rigid, frustrating user experiences. This project solves that by proxying unstructured WhatsApp messages directly to a Generative AI model, dynamically fulfilling user intents without requiring pre-programmed decision trees.
 
-## Overview & Core Description
+## Key Features
+- **Webhook Architecture:** Securely consumes and validates `POST` payloads from Twilio's WhatsApp Sandbox.
+- **LLM Fulfillment Pipeline:** Seamlessly routes user queries through advanced AI models to generate human-like responses.
+- **Context Persistence:** Logs message IDs, timestamps, and sender states into a relational database to provide the LLM with conversational context.
+- **Synchronous Execution:** Built on Flask for immediate prototype deployment on standard WSGI servers (Gunicorn/Waitress).
 
-A smart WhatsApp chatbot built using Flask, Twilio API, and Ollama (LLM) that auto-replies to user messages. 
-It handles incoming WhatsApp texts and responds using AI-generated replies. 
-Ideal for businesses to automate client interaction, FAQs, and support chats.
+## Architecture
 
----
-
-## Features
-
- Auto-replies to WhatsApp messages using AI  
- Local LLM support via Ollama (e.g., Mistral)  
- Integrated with Twilio sandbox for testing  
- Secure configuration via `.env` file  
- Ngrok support for webhook testing
-
----
-
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/krsna016/whatsapp-ai-powered-chatbot.git
-cd whatsapp-ai-powered-chatbot
-
----
-
-## System Design & Folder Structure
-```text
-.github/                  # CI/CD pipelines, Dependabot, and Issue/PR schemas
-.editorconfig             # Unified file formatting configuration
-.gitattributes            # Normalization variables for LF line endings
-.gitignore                # Local environment overrides and cache limits
-.pre-commit-config.yaml   # Quality check execution triggers
-LICENSE                   # Permissive open-source MIT License
-Makefile                  # Development workspace orchestrator
-CHANGELOG.md              # Historical version tracking
-CONTRIBUTING.md           # Developer onboarding guidelines
-CODE_OF_CONDUCT.md        # Communication guidelines
-SECURITY.md               # Responsible vulnerability disclosures
+```mermaid
+graph TD
+    User[WhatsApp Client] -->|E2E Encrypted| Meta[Meta/WhatsApp Servers]
+    Meta -->|Webhook POST| Twilio[Twilio Messaging API]
+    Twilio -->|Form Data| Flask[Flask Webhook Gateway]
+    Flask --> DB[(Local SQL Logger)]
+    Flask -->|REST Context| LLM[LLM Provider API]
+    LLM -->|Response Inference| Flask
+    Flask -->|TwiML Payload| Twilio
+    Twilio --> User
 ```
 
----
+## Technology Stack
+- **Framework:** Python 3.11, Flask
+- **Messaging Gateway:** Twilio WhatsApp API (TwiML)
+- **Database:** SQLite / SQLAlchemy
+- **Testing:** Pytest, unittest.mock
 
-## Tooling & Tech Stack
-- **Primary Environment:** Python runtime.
-- **Workflow Automation:** GitHub Actions CI, Dependabot, and CodeQL.
-- **Standards Checkers:** Git `pre-commit` hook validations.
+## Project Structure
+```text
+whatsapp-ai-chatbot/
+├── app/
+│   ├── __init__.py          # Application factory
+│   ├── config.py            # Environment validation
+│   ├── utils.py             # LLM API abstractions
+│   └── webhook.py           # Twilio POST request routing
+├── tests/                   # Pytest mocking suites
+├── run.py                   # WSGI server entry point
+├── requirements.txt         # Production dependencies
+└── README.md                # System documentation
+```
 
----
+## Installation
+```bash
+git clone https://github.com/krsna016/whatsapp-ai-chatbot.git
+cd whatsapp-ai-chatbot
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-## Quickstart & Local Setup
-1. Clone this repository locally:
-   ```bash
-   git clone https://github.com/krsna016/c2-whatsapp-ai-powered-chatbot-latest.git
-   cd c2-whatsapp-ai-powered-chatbot-latest
-   ```
-2. Trigger the local setup runner:
-   ```bash
-   make help
-   ```
+## Usage
+1. Configure your `.env` variables (Twilio SID, Auth Token, LLM API Keys).
+2. Start the local Flask server:
+```bash
+python3 run.py
+```
+3. Use a tunneling service (e.g., `ngrok`) to expose port 5000 to the public internet, and paste the tunnel URL into your Twilio WhatsApp Sandbox configuration.
 
----
+## Examples
+*Example Twilio Form-Data Payload handled by the Webhook:*
+```json
+{
+  "SmsMessageSid": "SM123...",
+  "NumMedia": "0",
+  "ProfileName": "Customer",
+  "Body": "Can you check my order status?",
+  "From": "whatsapp:+1234567890"
+}
+```
 
-## Security & Responsible Disclosure
-For details on disclosing vulnerabilities or hardcoded secrets, refer directly to our [SECURITY.md](SECURITY.md) guidelines.
+## Screenshots
+> [!NOTE]
+> *WhatsApp iOS client interaction screenshots are pending capture.*
 
----
+## Visual Demonstrations
+> [!NOTE]
+> *A GIF demonstrating the real-time fulfillment speed is being generated.*
+
+## Testing
+Webhook routing and Twilio response generation are verified using Flask's native `test_client`.
+```bash
+pytest tests/
+```
+
+## Performance Notes
+- **WSGI Blocking:** Because LLM inference requests are inherently blocking I/O calls, the underlying Gunicorn deployment must utilize `gevent` workers to handle concurrent inbound WhatsApp messages without dropping HTTP connections.
+
+## Future Improvements
+- **Asynchronous Migration:** Refactoring the core routing from Flask to FastAPI to natively support asynchronous I/O during LLM inference.
+- **RAG Integration:** Connecting the LLM context to an internal vector database for company-specific Q&A.
+
+## Contributing
+Please ensure all webhook payloads are properly validated via Twilio's HMAC signatures before merging any pull requests related to the `webhook.py` endpoint.
 
 ## License
-This repository is licensed under the permissive **MIT License**. For details, see the [LICENSE](LICENSE) file.
+Licensed under the MIT License.
